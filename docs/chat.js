@@ -1,6 +1,16 @@
 (() => {
 const PROXY = ''; // optional: your Cloudflare Worker URL (see worker/groq-proxy.js). Empty = each visitor uses their own key.
-const MODEL = 'llama-3.3-70b-versatile'; // change here if Groq retires this model
+const PREFER = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'llama-3.3-70b-versatile']; // first one your key can use wins
+let model = null;
+async function pickModel(key) {
+  if (model) return model;
+  try {
+    const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { authorization: 'Bearer ' + key } });
+    const ids = (await r.json()).data.map(m => m.id);
+    model = PREFER.find(p => ids.includes(p)) || ids.find(i => !/whisper|guard|tts|orpheus|safeguard|compound|prompt/.test(i));
+  } catch {}
+  return model || PREFER[0];
+}
 const API = PROXY || 'https://api.groq.com/openai/v1/chat/completions';
 const KEY = 'unseen_groq_key';
 const SYS = `You are the assistant inside UNSEEN-Q, a portfolio project by Nikhil Chary Sriramoju: a quantum-safe autonomous cognitive security fabric. Components: Go etcd Raft leader election with fencing terms; Rust hybrid X25519+ML-KEM-768 crypto and CycloneDX CBOM with rotate/rollback; Rust packet sniffer that builds flow features and flags beaconing; Python agent gateway (OPA policy, MCP tool personas, single-tool short-lived tokens, behavioral drift detection, human approval for high-risk actions); sharded Qdrant GraphRAG with citation-or-abstain; CNN+Transformer flow classifier with energy-based zero-day detection; NATS JetStream; OpenTelemetry; Docker, Kubernetes, Helm; Sigstore-signed SBOM in CI. The web page is a simulator, not a live backend. Be concise (under 120 words). Do not invent features. Never ask for or reveal API keys.`;
@@ -33,12 +43,13 @@ $('#cf').onsubmit = async e => {
   const out = add('...', 'ma');
   const state = `Live simulator state: leader ${t('#sL')}, term ${t('#sT')}, suite ${t('#sS')}, quarantined ${t('#sQ')}, healthy ${t('#sH')}, blocked ${t('#sB')}.`;
   try {
+    const m = PROXY ? PREFER[0] : await pickModel(key);
     const r = await fetch(API, { method: 'POST', headers: { 'content-type': 'application/json', ...(PROXY ? {} : { authorization: 'Bearer ' + key }) },
-      body: JSON.stringify({ model: MODEL, temperature: .3, max_tokens: 400, messages: [{ role: 'system', content: SYS + ' ' + state }, ...hist] }) });
+      body: JSON.stringify({ model: m, temperature: .3, max_tokens: 1000, ...(m.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}), messages: [{ role: 'system', content: SYS + ' ' + state }, ...hist] }) });
     if (r.status === 401) throw new Error('Key rejected. Use Reset key and paste a valid one.');
     if (r.status === 429) throw new Error('Free-tier rate limit hit. Wait a minute and retry.');
-    if (!r.ok) throw new Error('Groq error ' + r.status + '. The model name in chat.js may need updating.');
-    const a = (await r.json()).choices[0].message.content; out.textContent = a; hist.push({ role: 'assistant', content: a });
+    if (!r.ok) throw new Error('Groq error ' + r.status + '. Check the model list at console.groq.com/docs/models.');
+    const a = (await r.json()).choices[0].message.content || 'No answer, try again.'; out.textContent = a; hist.push({ role: 'assistant', content: a });
   } catch (err) { out.textContent = err.message || 'Network error.'; hist.pop() }
 };
 })();

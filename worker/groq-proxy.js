@@ -5,7 +5,7 @@ export default {
     const cors = { 'Access-Control-Allow-Origin': ok ? o : 'null', 'Access-Control-Allow-Headers': 'content-type', 'Access-Control-Allow-Methods': 'POST' };
     if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
     if (!ok || req.method !== 'POST') return new Response('forbidden', { status: 403, headers: cors });
-    const body = await req.json(); body.max_tokens = Math.min(body.max_tokens || 400, 400);
+    const body = await req.json(); body.max_tokens = Math.min(body.max_tokens || 400, 1000);
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST',
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + env.GROQ_API_KEY }, body: JSON.stringify(body) });
     return new Response(r.body, { status: r.status, headers: { ...cors, 'content-type': 'application/json' } });
