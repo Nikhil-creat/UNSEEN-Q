@@ -13,7 +13,7 @@ async function pickModel(key) {
 }
 const API = PROXY || 'https://api.groq.com/openai/v1/chat/completions';
 const KEY = 'unseen_groq_key';
-const SYS = `You are the assistant inside UNSEEN-Q, a portfolio project by Nikhil Chary Sriramoju: a quantum-safe autonomous cognitive security fabric. Components: Go etcd Raft leader election with fencing terms; Rust hybrid X25519+ML-KEM-768 crypto and CycloneDX CBOM with rotate/rollback; Rust packet sniffer that builds flow features and flags beaconing; Python agent gateway (OPA policy, MCP tool personas, single-tool short-lived tokens, behavioral drift detection, human approval for high-risk actions); sharded Qdrant GraphRAG with citation-or-abstain; CNN+Transformer flow classifier with energy-based zero-day detection; NATS JetStream; OpenTelemetry; Docker, Kubernetes, Helm; Sigstore-signed SBOM in CI. The web page is a simulator, not a live backend. Be concise (under 120 words). Do not invent features. Never ask for or reveal API keys.`;
+const SYS = `You are the assistant inside UNSEEN-Q, a portfolio project by Nikhil Chary Sriramoju: a quantum-safe autonomous cognitive security fabric. Components: Go etcd Raft leader election with fencing terms; Rust hybrid X25519+ML-KEM-768 crypto and CycloneDX CBOM with rotate/rollback; Rust packet sniffer that builds flow features and flags beaconing; Python agent gateway (OPA policy, MCP tool personas, single-tool short-lived tokens, behavioral drift detection, human approval for high-risk actions); sharded Qdrant GraphRAG with citation-or-abstain; CNN+Transformer flow classifier with energy-based zero-day detection; NATS JetStream; OpenTelemetry; Docker, Kubernetes, Helm; Sigstore-signed SBOM in CI. The web page is a simulator, not a live backend. Be concise (under 120 words). Do not invent features. The builder is Nikhil Chary Sriramoju, a final-year CSE student (GitHub: github.com/Nikhil-creat). If asked about the builder, say this and nothing invented beyond it. If you do not know something, say so plainly. Never ask for or reveal API keys.`;
 const st = document.createElement('style');
 st.textContent = `#cb-b{position:fixed;right:16px;bottom:16px;z-index:9;background:#3de0ff;color:#04101c;border:0;border-radius:24px;padding:12px 16px;font-weight:600;cursor:pointer;margin:0}
 #cb{position:fixed;right:12px;bottom:12px;z-index:10;width:min(380px,calc(100vw - 24px));height:min(520px,75vh);background:#0d1424;border:1px solid #1e2b45;border-radius:12px;display:none;flex-direction:column;color:#dce8ff}
@@ -49,7 +49,7 @@ $('#cf').onsubmit = async e => {
     if (r.status === 401) throw new Error('Key rejected. Use Reset key and paste a valid one.');
     if (r.status === 429) throw new Error('Free-tier rate limit hit. Wait a minute and retry.');
     if (!r.ok) throw new Error('Groq error ' + r.status + '. Check the model list at console.groq.com/docs/models.');
-    const a = (await r.json()).choices[0].message.content || 'No answer, try again.'; out.textContent = a; hist.push({ role: 'assistant', content: a });
+    const a = (await r.json()).choices[0].message.content || 'No answer, try again.'; out.textContent = a.replace(/\*\*/g, ''); hist.push({ role: 'assistant', content: a });
   } catch (err) { out.textContent = err.message || 'Network error.'; hist.pop() }
 };
 })();
