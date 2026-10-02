@@ -1,0 +1,7 @@
+services:
+  agents: { image: ghcr.io/nikhil-creat/unseen-agents:latest, replicas: 3, port: 8000 }
+  rag:    { image: ghcr.io/nikhil-creat/unseen-rag:latest,    replicas: 2, port: 8000 }
+  cnn:    { image: ghcr.io/nikhil-creat/unseen-cnn:latest,    replicas: 2, port: 8000 }
+resources:
+  limits: { cpu: 500m, memory: 512Mi }
+  requests: { cpu: 100m, memory: 128Mi }

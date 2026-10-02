@@ -39,3 +39,8 @@ Designed and Developed by NIKHIL CHARY SRIRAMOJU. Publishing steps are in DEPLOY
 
 ## Full contents
 Dockerfiles for every service, FastAPI health/authorize endpoints, eBPF (Tetragon) telemetry, Kubernetes manifests with default-deny network policy, CI with SBOM + Sigstore signing, pytest suite, chaos drill (`chaos/drill.sh`), architecture diagram (`docs/ARCHITECTURE.md`), SECURITY.md, MIT license.
+
+## v1.1 additions
+- **Chatbot** (`docs/chat.js`): Groq-powered assistant inside the 3D page. It reads the live simulator state. Each visitor pastes their own free Groq key (stored only in their browser), or you deploy `worker/groq-proxy.js` and set `PROXY`. Never commit an API key.
+- **Rust packet sniffer** (`services/sniffer`): passive flow builder with beacon detection, JSON output. Run: `sudo cargo run --release -- eth0`. Only monitor networks you own or are authorised to test.
+- **Helm chart** (`deploy/helm/unseen-q`): `helm lint deploy/helm/unseen-q` then `helm install unseen deploy/helm/unseen-q`.

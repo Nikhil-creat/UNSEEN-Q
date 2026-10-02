@@ -61,3 +61,8 @@ services:
     build: ../services/telemetry
     depends_on: [nats]
     networks: [mesh]
+  sniffer:
+    build: ../services/sniffer
+    network_mode: host          # see the host's traffic; Linux only
+    cap_add: [NET_RAW]
+    environment: { IFACE: eth0 }

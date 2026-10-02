@@ -1,0 +1,42 @@
+{{- range $name, $s := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+spec:
+  replicas: {{ $s.replicas }}
+  selector:
+    matchLabels: { app: {{ $name }}, release: {{ $.Release.Name }} }
+  template:
+    metadata:
+      labels: { app: {{ $name }}, release: {{ $.Release.Name }} }
+    spec:
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+      - name: {{ $name }}
+        image: {{ $s.image | quote }}
+        ports: [{ containerPort: {{ $s.port }} }]
+        readinessProbe: { httpGet: { path: /health, port: {{ $s.port }} } }
+        securityContext: { readOnlyRootFilesystem: true, allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+        resources:
+{{ toYaml $.Values.resources | indent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+spec:
+  selector: { app: {{ $name }}, release: {{ $.Release.Name }} }
+  ports: [{ port: {{ $s.port }}, targetPort: {{ $s.port }} }]
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-default-deny
+spec:
+  podSelector: { matchLabels: { release: {{ .Release.Name }} } }
+  policyTypes: [Ingress]
+  ingress:
+  - from: [{ podSelector: { matchLabels: { release: {{ .Release.Name }} } } }]
