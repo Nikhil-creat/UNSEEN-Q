@@ -1,0 +1,95 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNSEEN-Q v1.0 | 3D Cognitive Security Fabric</title>
+<meta name="description" content="Post-quantum, agentic zero-trust security fabric. Designed and developed by Nikhil Chary Sriramoju.">
+<style>
+:root{--bg:#050912;--pn:#0d1424;--ln:#1e2b45;--tx:#dce8ff;--mu:#7f93b5;--cy:#3de0ff;--vi:#8b6cff;--rd:#ff4d6d;--gn:#3dffa8;--am:#ffc14d}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:radial-gradient(120% 90% at 70% 0,#10204a,var(--bg) 60%);color:var(--tx);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column}
+header{padding:14px 18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+h1{margin:0;font-size:1.25rem;letter-spacing:.02em}h1 small{color:var(--cy);font-weight:500;margin-left:8px}
+header span{color:var(--mu);font-size:.85rem}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;padding:0 12px 12px;min-height:0}
+#stage{position:relative;border:1px solid var(--ln);border-radius:12px;overflow:hidden;min-height:420px;background:#060c1a;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%}
+#hint{position:absolute;left:12px;bottom:10px;color:var(--mu);font-size:.8rem;pointer-events:none}
+aside{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.p{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:12px}
+.p h2{margin:0 0 8px;font-size:.9rem;color:var(--cy)}
+.st{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.85rem}.st b{display:block;font-size:1.05rem}.st i{color:var(--mu);font-style:normal}
+button{background:#14305a;color:var(--tx);border:1px solid #2a5aa0;border-radius:7px;padding:8px 10px;margin:0 4px 6px 0;font:inherit;font-size:.85rem;cursor:pointer}
+button:hover{background:#1b4380}button.d{background:#4a1626;border-color:#a0314d}button:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+#log{height:170px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,monospace}
+#log div{border-left:2px solid var(--ln);padding-left:6px;margin-bottom:2px}.ok{border-color:var(--gn)!important}.w{border-color:var(--am)!important}.e{border-color:var(--rd)!important}
+footer{padding:10px 16px;text-align:center;font-size:.85rem;color:var(--mu);border-top:1px solid var(--ln)}
+footer b{color:var(--tx);letter-spacing:.04em}footer a{color:var(--cy)}
+@media(max-width:860px){main{grid-template-columns:1fr}#stage{height:55vh}body{height:auto}html{height:auto}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style></head><body>
+<header><h1>UNSEEN-Q<small>v1.0 Cognitive Security Fabric</small></h1><span>Post-quantum | Agentic zero trust | Self-healing</span></header>
+<main>
+<section id="stage" aria-label="3D cluster view"><div id="hint">Drag to rotate. Scroll or pinch to zoom.</div></section>
+<aside>
+<div class="p"><h2>Fabric status</h2><div class="st">
+<div><i>Leader</i><b id="sL">-</b></div><div><i>Fencing term</i><b id="sT">1</b></div>
+<div><i>Crypto suite</i><b id="sS">hybrid-v1</b></div><div><i>Quarantined</i><b id="sQ">0</b></div>
+<div><i>Healthy nodes</i><b id="sH">8</b></div><div><i>Threats blocked</i><b id="sB">0</b></div></div></div>
+<div class="p"><h2>Simulate</h2>
+<button id="bK" class="d">Kill leader</button><button id="bA" class="d">Zero-day attack</button><button id="bI" class="d">Agent injection</button>
+<button id="bR">Rotate to ML-KEM-1024</button><button id="bH">Heal all</button></div>
+<div class="p"><h2>Event stream</h2><div id="log" role="log" aria-live="polite"></div></div>
+<div class="p" style="font-size:.82rem;color:var(--mu)">Stack: etcd Raft, NATS JetStream, SPIFFE/SPIRE, OPA, MCP/A2A agents, GraphRAG on Qdrant, CNN+Transformer flow model, FIPS 203/204/205 hybrid PQC, OpenTelemetry.</div>
+</aside></main>
+<footer>Designed and Developed by <b>NIKHIL CHARY SRIRAMOJU</b> | <a href="https://github.com/Nikhil-creat" rel="noopener">GitHub</a> | <a href="https://in.linkedin.com/in/nikhil-chary-sriramoju-95041b38a" rel="noopener">LinkedIn</a></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),box=$('#stage'),LG=$('#log');
+const log=(t,c='')=>{LG.insertAdjacentHTML('beforeend',`<div class="${c}">${new Date().toLocaleTimeString()} ${t}</div>`);LG.scrollTop=1e9};
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,.1,100);cam.position.z=11;
+const rd=new THREE.WebGLRenderer({antialias:true,alpha:true});rd.setPixelRatio(Math.min(devicePixelRatio,2));box.appendChild(rd.domElement);
+const G=new THREE.Group();sc.add(G);
+const core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,1),new THREE.MeshBasicMaterial({color:0x3de0ff,wireframe:true}));G.add(core);
+const shell=new THREE.Mesh(new THREE.SphereGeometry(4.4,32,24),new THREE.MeshBasicMaterial({color:0x1e2b45,wireframe:true,transparent:true,opacity:.18}));G.add(shell);
+const N=8,nodes=[];
+for(let i=0;i<N;i++){const y=1-2*(i+.5)/N,r=Math.sqrt(1-y*y),a=i*2.399963;
+ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.32),new THREE.MeshBasicMaterial({color:0x8b6cff}));
+ m.position.set(Math.cos(a)*r*3.6,y*3.6,Math.sin(a)*r*3.6);G.add(m);nodes.push({m,up:true,q:false,ld:false});}
+const lp=[];for(let i=0;i<N;i++)for(let j=i+1;j<N;j++)if(nodes[i].m.position.distanceTo(nodes[j].m.position)<4.1)lp.push(nodes[i].m.position,nodes[j].m.position);
+G.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lp),new THREE.LineBasicMaterial({color:0x2a5aa0,transparent:true,opacity:.5})));
+nodes.forEach(n=>G.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),n.m.position]),new THREE.LineBasicMaterial({color:0x14305a}))));
+const halo=new THREE.Mesh(new THREE.TorusGeometry(.6,.03,8,40),new THREE.MeshBasicMaterial({color:0x3dffa8}));G.add(halo);
+const pk=[];for(let i=0;i<14;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(.07),new THREE.MeshBasicMaterial({color:0x3de0ff}));G.add(s);pk.push({s,a:0,b:1,t:Math.random()})}
+const col=n=>n.q?0xffc14d:!n.up?0x333a4a:n.ld?0x3dffa8:0x8b6cff;
+const paint=()=>{nodes.forEach(n=>{n.m.material.color.setHex(col(n));n.m.scale.setScalar(n.ld?1.5:1)});
+ const l=nodes.findIndex(n=>n.ld);$('#sL').textContent=l<0?'none':'node-'+l;$('#sT').textContent=term;
+ $('#sQ').textContent=nodes.filter(n=>n.q).length;$('#sH').textContent=nodes.filter(n=>n.up&&!n.q).length;if(l>=0)halo.position.copy(nodes[l].m.position)};
+let term=1,blocked=0,suite=0;
+const live=()=>nodes.map((n,i)=>i).filter(i=>nodes[i].up&&!nodes[i].q);
+function elect(){nodes.forEach(n=>n.ld=false);const L=live();if(L.length<5){log('Quorum lost: writes frozen','e');paint();return}
+ const w=L[Math.floor(Math.random()*L.length)];nodes[w].ld=true;term++;log(`node-${w} elected, fencing term ${term}`,'ok');paint()}
+let atk=null;
+function attack(kind){const L=live();if(!L.length||atk)return;const t=L[Math.floor(Math.random()*L.length)];
+ const s=new THREE.Mesh(new THREE.SphereGeometry(.2),new THREE.MeshBasicMaterial({color:0xff4d6d}));s.position.set(9,5,3);G.add(s);atk={s,t,kind};
+ log(kind=='z'?`Unseen flow heading to node-${t}; energy score high`:`Agent prompt-injection against node-${t} agents`,'e')}
+$('#bK').onclick=()=>{const l=nodes.findIndex(n=>n.ld);if(l<0)return;nodes[l].up=false;log(`node-${l} down`,'w');elect()};
+$('#bA').onclick=()=>attack('z');$('#bI').onclick=()=>attack('i');
+$('#bR').onclick=()=>{suite=1;$('#sS').textContent='hybrid-v2 (ML-KEM-1024)';core.material.color.setHex(0x8b6cff);log('Suite rotated, CBOM regenerated, rollback point saved','ok')};
+$('#bH').onclick=()=>{nodes.forEach(n=>{n.up=true;n.q=false});if(suite){suite=0;$('#sS').textContent='hybrid-v1';core.material.color.setHex(0x3de0ff)}log('Cluster healed','ok');elect()};
+function size(){const w=box.clientWidth,h=box.clientHeight;rd.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',size);size();
+let drag=false,px=0,py=0,rx=.3,ry=0,auto=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+box.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-px)*.006;rx+=(e.clientY-py)*.006;px=e.clientX;py=e.clientY});
+box.addEventListener('wheel',e=>{e.preventDefault();cam.position.z=Math.min(18,Math.max(6,cam.position.z+e.deltaY*.01))},{passive:false});
+let pd=0;box.addEventListener('touchmove',e=>{if(e.touches.length==2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pd)cam.position.z=Math.min(18,Math.max(6,cam.position.z-(d-pd)*.03));pd=d}},{passive:true});
+box.addEventListener('touchend',()=>pd=0);
+(function loop(){requestAnimationFrame(loop);if(auto&&!drag)ry+=.002;G.rotation.set(rx,ry,0);core.rotation.y+=.01;halo.rotation.x+=.03;
+ pk.forEach(p=>{p.t+=.012;if(p.t>1){p.t=0;const L=live();p.a=L[Math.floor(Math.random()*L.length)]??0;p.b=L[Math.floor(Math.random()*L.length)]??1}
+  p.s.position.lerpVectors(nodes[p.a].m.position,nodes[p.b].m.position,p.t)});
+ if(atk){const tp=nodes[atk.t].m.position;atk.s.position.lerp(tp,.04);
+  if(atk.s.position.distanceTo(tp)<.4){G.remove(atk.s);const n=nodes[atk.t];n.q=true;blocked++;$('#sB').textContent=blocked;
+   log(atk.kind=='z'?`CNN flagged zero-day, node-${atk.t} quarantined, runbook sent`:`OPA denied injection, agent identity revoked on node-${atk.t}`,'w');
+   const wasL=n.ld;atk=null;if(wasL)elect();else paint()}}
+ rd.render(sc,cam)})();
+paint();elect();log('Fabric online. 8 nodes, hybrid-v1 active.','ok');
+</script></body></html>

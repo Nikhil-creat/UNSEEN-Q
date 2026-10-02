@@ -1,0 +1,1 @@
+{"threat_hunter":["mcp:flows.query","mcp:rag.search"],"log_triage":["mcp:logs.read","mcp:rag.search"],"crypto_auditor":["mcp:cbom.read"],"remediation":["mcp:firewall.patch","mcp:node.isolate"]}

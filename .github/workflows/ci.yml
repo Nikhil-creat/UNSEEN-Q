@@ -1,0 +1,22 @@
+name: ci
+on: [push, pull_request]
+permissions: { contents: read, id-token: write, packages: write }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pytest PyJWT[crypto] httpx qdrant-client && pytest -q tests
+  supply-chain:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v3
+      - uses: anchore/sbom-action@v0
+        with: { path: ., format: cyclonedx-json, output-file: sbom.json }
+      - run: cosign sign-blob --yes sbom.json --bundle sbom.sigstore.json   # keyless Sigstore signature
+      - uses: actions/upload-artifact@v4
+        with: { name: sbom-signed, path: "sbom*.json" }

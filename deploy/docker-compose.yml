@@ -1,0 +1,63 @@
+name: unseen
+x-hc: &hc { interval: 10s, timeout: 3s, retries: 5 }
+networks:
+  mesh: { driver: bridge, internal: true }
+  edge: { driver: bridge }
+volumes: { etcd: {}, qdrant: {}, nats: {}, vault: {} }
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.15
+    command: etcd --advertise-client-urls=http://etcd:2379 --listen-client-urls=http://0.0.0.0:2379
+    volumes: [etcd:/etcd-data]
+    networks: [mesh]
+    healthcheck: { <<: *hc, test: [CMD, etcdctl, endpoint, health] }
+  nats:
+    image: nats:2.10-alpine
+    command: -js -sd /data -m 8222
+    volumes: [nats:/data]
+    networks: [mesh]
+  openbao:
+    image: openbao/openbao:2
+    cap_add: [IPC_LOCK]
+    volumes: [vault:/openbao/file]
+    networks: [mesh]
+  opa:
+    image: openpolicyagent/opa:latest
+    command: run --server --addr :8181 /policy
+    volumes: ["../policy:/policy:ro"]
+    networks: [mesh]
+  qdrant:
+    image: qdrant/qdrant:v1.12.0
+    volumes: [qdrant:/qdrant/storage]
+    networks: [mesh]
+  otel:
+    image: otel/opentelemetry-collector-contrib:latest
+    networks: [mesh, edge]
+  grafana:
+    image: grafana/otel-lgtm:latest
+    ports: ["3000:3000"]
+    networks: [edge, mesh]
+  consensus:
+    build: ../services/consensus
+    environment: { NODE_ID: node-a, ETCD: "etcd:2379" }
+    depends_on: { etcd: { condition: service_healthy } }
+    deploy: { replicas: 3 }
+    networks: [mesh]
+  agents:
+    build: ../services/agents
+    depends_on: [nats, opa, openbao]
+    networks: [mesh]
+  rag:
+    build: ../services/rag
+    depends_on: [qdrant]
+    networks: [mesh]
+  cnn:
+    build: ../services/cnn
+    networks: [mesh, edge]
+  pqc:
+    build: ../services/pqc
+    networks: [mesh]
+  telemetry:
+    build: ../services/telemetry
+    depends_on: [nats]
+    networks: [mesh]

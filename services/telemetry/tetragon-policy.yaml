@@ -1,0 +1,9 @@
+# eBPF kernel telemetry via Cilium Tetragon: log every outbound TCP connect from workloads.
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata: { name: unseen-tcp-connect }
+spec:
+  kprobes:
+  - call: tcp_connect
+    syscall: false
+    args: [{ index: 0, type: sock }]
